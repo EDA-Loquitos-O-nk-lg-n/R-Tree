@@ -252,7 +252,7 @@ void Interfaz::imprimir_arbol_r_recursivo(Nodo* nodo, int &espacio, int color){
             Entrada_Hoja* eh = dynamic_cast<Entrada_Hoja*>(i);
             if(eh->tuplas.size() == 1){
                 sf::CircleShape coordenada;
-                coordenada.setRadius(4);
+                coordenada.setRadius(1);
                 coordenada.setFillColor(sf::Color::Red);
                 coordenada.setPosition(eh->tuplas[0].x - 2, window.getSize().y - eh->tuplas[0].y - 2);
                 window.draw(coordenada);

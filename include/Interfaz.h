@@ -30,6 +30,7 @@ public:
      * 
      */
     void ejecutar();
+    Arbol_R *arbol_r;
 
 protected:
     void marco();
@@ -45,7 +46,6 @@ private:
     void imprimir_arbol_r_recursivo(Nodo* nodo, int &espacio, int color);
     string tupla_string(Punto llave_tupla);
 
-    Arbol_R *arbol_r;
     sf::RenderWindow window;
     int width_canvas;
     int height_canvas;
