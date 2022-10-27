@@ -1,6 +1,8 @@
 #include "../include/Arbol_R.h"
 
-
+vector<Arbol_R::Entrada_Distancia> depthKNN(Punto P, int k){
+    
+}
 
 bool Arbol_R::comparar_x(Entrada *a, Entrada *b) {
     if(a->intervalos[0].i1 < b->intervalos[0].i1){
@@ -354,6 +356,7 @@ void Arbol_R::condensar(Nodo* &H, deque<Nodo*> &NE){
             {
                 if (dynamic_cast<Entrada_Interna*>(H->padre->entradas[i])->puntero_hijo != H)
                     continue;
+                delete *next(H->padre->entradas.begin(), i);
                 H->padre->entradas.erase(next(H->padre->entradas.begin(), i));
                 break;
             }
@@ -407,6 +410,7 @@ void Arbol_R::eliminar_cercano(Punto P){
     // D2
     for(int i = 0; i<L->entradas.size(); i++){
         if(L->entradas[i] == E){
+            delete *next(L->entradas.begin(), i);
             L->entradas.erase(next(L->entradas.begin(), i));
             break;
         }
@@ -439,6 +443,7 @@ void Arbol_R::condensar_cercano(Nodo* L){
         }
         // CT3
         if(N->entradas.size() < m){
+            delete *next(P->entradas.begin(), E_N);
             P->entradas.erase(next(P->entradas.begin(), E_N));
             eliminado = true;
             Q.push_back(N);

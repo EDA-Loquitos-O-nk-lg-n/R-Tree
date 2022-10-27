@@ -30,6 +30,7 @@ public:
     void eliminar(Punto P);
     void eliminar_cercano(Punto P);
     vector<Entrada_Distancia> buscar_k_vecinos(Punto P, int k);
+    vector<Entrada_Distancia> depthKNN(Punto P, int k);
     struct Entrada_Distancia{
         Entrada_Distancia(Entrada* E, Punto P, Nodo* N);
         Entrada* entrada;
