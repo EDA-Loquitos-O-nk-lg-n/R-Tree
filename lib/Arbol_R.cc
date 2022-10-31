@@ -1,9 +1,5 @@
 #include "../include/Arbol_R.h"
 
-vector<Arbol_R::Entrada_Distancia> depthKNN(Punto P, int k){
-    
-}
-
 bool Arbol_R::comparar_x(Entrada *a, Entrada *b) {
     if(a->intervalos[0].i1 < b->intervalos[0].i1){
         if(a->intervalos[0].i2 <= b->intervalos[0].i2)
@@ -292,17 +288,52 @@ vector<Arbol_R::Entrada_Distancia> Arbol_R::buscar_k_vecinos(Punto P, int k){
         knn_lista.push({raiz->entradas[i], P, raiz});
     }
 
+    double DK = 400;
+
+
     vector<Arbol_R::Entrada_Distancia> resultados;
     while(resultados.size() < k && !knn_lista.empty()){
         if(knn_lista.top().tupla->hoja){
-            resultados.push_back(knn_lista.top());
+            // REGLA 2
+            Entrada_Hoja* ET = dynamic_cast<Entrada_Hoja*>(knn_lista.top().entrada);
+            pair<double, double> MP = {(ET->intervalos[0].i1+ET->intervalos[0].i2)/2, (ET->intervalos[1].i1+ET->intervalos[1].i2)/2};
+            double D_Q_Mp = sqrt(pow(MP.first-P.x,2)+pow(MP.second-P.y,2));
+            double DistOMP = sqrt(pow(ET->tuplas[0].x - MP.first,2) + pow(ET->tuplas[0].y - MP.second,2));
+            // CONDICIONAL PARA REGLA 1 y REGLA 4
+            if(DK +DistOMP >=D_Q_Mp && DK + D_Q_Mp >= DistOMP)
+                resultados.push_back(knn_lista.top());
+
+
             knn_lista.pop();
         }
         else{
+            // REGLA 1
             Entrada_Interna* ET = dynamic_cast<Entrada_Interna*>(knn_lista.top().entrada);
+            pair<double, double> MP = {(ET->intervalos[0].i1+ET->intervalos[0].i2)/2, (ET->intervalos[1].i1+ET->intervalos[1].i2)/2};
+            pair<double, double> rad_mp = {MP.first - ET->intervalos[0].i1, MP.second - ET->intervalos[1].i1};
+
+
+            double max_rad_mp = max(rad_mp.first, rad_mp.second);
+            double D_Q_Mp = sqrt(pow(MP.first-P.x,2)+pow(MP.second-P.y,2));
+
+            // REGLA 3
+            double r_p_min = numeric_limits<double>::max();
+            for(auto i: ET->puntero_hijo->entradas){
+                pair<double, double> mp_e = {(i->intervalos[0].i1+i->intervalos[0].i2)/2, (i->intervalos[1].i1+i->intervalos[1].i2)/2};
+                pair<double, double> rad_mp_e = {mp_e.first - i->intervalos[0].i1, mp_e.second - i->intervalos[1].i1};
+
+                r_p_min = min(r_p_min, sqrt(pow(mp_e.first - P.x, 2)+pow(mp_e.second - P.y,2))-max(rad_mp_e.first, rad_mp_e.second));
+            }
+            
+
             knn_lista.pop();
-            for(int i = 0; i<ET->puntero_hijo->entradas.size(); i++)
-                knn_lista.push({ET->puntero_hijo->entradas[i], P, ET->puntero_hijo});
+
+            // CONDICIONAL PARA REGLA 1 y REGLA 3
+            if(DK+max_rad_mp >= D_Q_Mp && DK + D_Q_Mp >= r_p_min){
+                for(int i = 0; i<ET->puntero_hijo->entradas.size(); i++)
+                    knn_lista.push({ET->puntero_hijo->entradas[i], P, ET->puntero_hijo});
+            }
+
         }
     }
     return resultados;
