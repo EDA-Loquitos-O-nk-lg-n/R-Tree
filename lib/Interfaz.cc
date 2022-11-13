@@ -258,14 +258,14 @@ void Interfaz::imprimir_arbol_r_recursivo(Nodo* nodo, int &espacio, int color){
                 window.draw(coordenada);
 
                 // Imprimir coordendas
-                sf::Text text;
+                /* sf::Text text;
                 text.setFont(font);
                 text.setString("Punto: "+tupla_string(eh->tuplas[0]));
                 text.setCharacterSize(10);
                 text.setFillColor(sf::Color::White);
                 text.setPosition(sf::Vector2f(window.getSize().x*7.f/10.f, window.getSize().y/10 + espacio));
                 window.draw(text);
-                espacio += 13;
+                espacio += 13; */
             }
             else
             {
@@ -281,14 +281,14 @@ void Interfaz::imprimir_arbol_r_recursivo(Nodo* nodo, int &espacio, int color){
                 window.draw(convex);
 
                 // sdfsfs
-                sf::Text text;
+                /* sf::Text text;
                 text.setFont(font);
                 text.setString("Poligono: "+polygon_coords);
                 text.setCharacterSize(10);
                 text.setFillColor(sf::Color::White);
                 text.setPosition(sf::Vector2f(window.getSize().x*7.f/10.f, window.getSize().y/10 + espacio));
                 window.draw(text);
-                espacio += 13;
+                espacio += 13; */
             }
         }
     }
