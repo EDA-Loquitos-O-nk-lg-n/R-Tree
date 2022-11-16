@@ -1,6 +1,8 @@
 #include "../include/Arbol_R.h"
+#include <thread>
+#include <mutex>
 
-
+std::mutex mtx;           // mutex for critical section
 
 bool Arbol_R::comparar_x(Entrada *a, Entrada *b) {
     if(a->intervalos[0].i1 < b->intervalos[0].i1){
@@ -165,6 +167,23 @@ Nodo* Arbol_R::partir_nodo(Entrada *E, Nodo *L) {
     return LL;
 }
 
+
+void paralel(Nodo* &N,Entrada_Hoja *E,int maxx,int l,int r,int &minima_area,Entrada *&F){
+    for(int i=l;i<min(r,maxx);i++){
+        int minima_area_local = 1;
+        minima_area_local *= max(N->entradas[i]->intervalos[0].i2, E->intervalos[0].i2) - min(N->entradas[i]->intervalos[0].i1, E->intervalos[0].i1);
+        minima_area_local *= max(N->entradas[i]->intervalos[1].i2, E->intervalos[1].i2) - min(N->entradas[i]->intervalos[1].i1, E->intervalos[1].i1);
+
+        if(minima_area_local < minima_area){
+            mtx.lock();
+            minima_area = minima_area_local;
+            F = N->entradas[i];
+            mtx.unlock();
+        }
+    }
+}
+
+
 Nodo *Arbol_R::escoger_hoja(Entrada_Hoja *E) {
     // CL1
     Nodo* N = this->raiz;
@@ -175,7 +194,29 @@ Nodo *Arbol_R::escoger_hoja(Entrada_Hoja *E) {
         int minima_area = 1;
         minima_area *= max(N->entradas[0]->intervalos[0].i2, E->intervalos[0].i2) - min(N->entradas[0]->intervalos[0].i1, E->intervalos[0].i1);
         minima_area *= max(N->entradas[0]->intervalos[1].i2, E->intervalos[1].i2) - min(N->entradas[0]->intervalos[1].i1, E->intervalos[1].i1);
-        for(int i = 1; i<N->entradas.size(); i++){
+        
+
+        int num_entradas=N->entradas.size();
+
+        int val=min(int(std::thread::hardware_concurrency()),num_entradas);
+        vector<thread> hilos(val);
+    
+        int bucket=ceil(num_entradas*1.0/val); 
+        int salto=1;
+        
+        for(int i=0;i<val;i++){
+            //void paralel(Nodo* &N,Entrada_Hoja *E,int maxx,int l,int r,int &minima_area,Entrada *&F){
+            hilos[i]=thread(paralel,ref(N),ref(E),num_entradas,salto,salto+bucket,ref(minima_area),ref(F));
+            salto=salto+bucket;
+        }
+
+        for(int i=0;i<val;i++){
+            hilos[i].join();
+        }
+
+
+        /*
+        for(int i = 1; i<num_entradas; i++){
             int minima_area_local = 1;
             minima_area_local *= max(N->entradas[i]->intervalos[0].i2, E->intervalos[0].i2) - min(N->entradas[i]->intervalos[0].i1, E->intervalos[0].i1);
             minima_area_local *= max(N->entradas[i]->intervalos[1].i2, E->intervalos[1].i2) - min(N->entradas[i]->intervalos[1].i1, E->intervalos[1].i1);
@@ -184,7 +225,7 @@ Nodo *Arbol_R::escoger_hoja(Entrada_Hoja *E) {
                 minima_area = minima_area_local;
                 F = N->entradas[i];
             }
-        }
+        }*/
         // CL4
         N = dynamic_cast<Entrada_Interna*>(F)->puntero_hijo;
     }
