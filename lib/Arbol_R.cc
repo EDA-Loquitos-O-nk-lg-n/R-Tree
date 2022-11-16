@@ -174,12 +174,12 @@ void paralel(Nodo* &N,Entrada_Hoja *E,int maxx,int l,int r,int &minima_area,Entr
         minima_area_local *= max(N->entradas[i]->intervalos[0].i2, E->intervalos[0].i2) - min(N->entradas[i]->intervalos[0].i1, E->intervalos[0].i1);
         minima_area_local *= max(N->entradas[i]->intervalos[1].i2, E->intervalos[1].i2) - min(N->entradas[i]->intervalos[1].i1, E->intervalos[1].i1);
 
+	mtx.lock();
         if(minima_area_local < minima_area){
-            mtx.lock();
             minima_area = minima_area_local;
             F = N->entradas[i];
-            mtx.unlock();
         }
+        mtx.unlock();
     }
 }
 
