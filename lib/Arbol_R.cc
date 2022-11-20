@@ -2,7 +2,6 @@
 #include <thread>
 #include <mutex>
 
-std::mutex mtx;           // mutex for critical section
 
 bool Arbol_R::comparar_x(Entrada *a, Entrada *b) {
     if(a->intervalos[0].i1 < b->intervalos[0].i1){
@@ -168,18 +167,16 @@ Nodo* Arbol_R::partir_nodo(Entrada *E, Nodo *L) {
 }
 
 
-void paralel(Nodo* &N,Entrada_Hoja *E,int maxx,int l,int r,int &minima_area,Entrada *&F){
+void paralel(Nodo* &N,Entrada_Hoja *E,int maxx,int l,int r,pair<int,Entrada*> &minima_area){
     for(int i=l;i<min(r,maxx);i++){
         int minima_area_local = 1;
         minima_area_local *= max(N->entradas[i]->intervalos[0].i2, E->intervalos[0].i2) - min(N->entradas[i]->intervalos[0].i1, E->intervalos[0].i1);
         minima_area_local *= max(N->entradas[i]->intervalos[1].i2, E->intervalos[1].i2) - min(N->entradas[i]->intervalos[1].i1, E->intervalos[1].i1);
 
-	mtx.lock();
-        if(minima_area_local < minima_area){
-            minima_area = minima_area_local;
-            F = N->entradas[i];
+        if(minima_area_local < minima_area.first){
+            minima_area.first = minima_area_local;
+            minima_area.second = N->entradas[i];
         }
-        mtx.unlock();
     }
 }
 
@@ -191,36 +188,40 @@ Nodo *Arbol_R::escoger_hoja(Entrada_Hoja *E) {
     while(!N->hoja){
         // CL3
         Entrada *F = N->entradas[0];
-        int minima_area = 1;
-        minima_area *= max(N->entradas[0]->intervalos[0].i2, E->intervalos[0].i2) - min(N->entradas[0]->intervalos[0].i1, E->intervalos[0].i1);
-        minima_area *= max(N->entradas[0]->intervalos[1].i2, E->intervalos[1].i2) - min(N->entradas[0]->intervalos[1].i1, E->intervalos[1].i1);
         
-
         int num_entradas=N->entradas.size();
 
         int val=min(int(std::thread::hardware_concurrency()),num_entradas);
         vector<thread> hilos(val);
-    
+        vector<pair<int,Entrada*>> hilos_values(val,{numeric_limits<int>::max(),nullptr});
+
         int bucket=ceil(num_entradas*1.0/val); 
-        int salto=1;
+        int salto=0;
         
         for(int i=0;i<val;i++){
             //void paralel(Nodo* &N,Entrada_Hoja *E,int maxx,int l,int r,int &minima_area,Entrada *&F){
-            hilos[i]=thread(paralel,ref(N),ref(E),num_entradas,salto,salto+bucket,ref(minima_area),ref(F));
+            hilos[i]=thread(paralel,ref(N),ref(E),num_entradas,salto,salto+bucket,ref(hilos_values[i]));
             salto=salto+bucket;
-        }
+        }  
+
+        int llave=numeric_limits<int>::max();
 
         for(int i=0;i<val;i++){
             hilos[i].join();
         }
 
+        for(int i=0;i<val;i++){
+            if(hilos_values[i].first<llave){
+                llave=hilos_values[i].first;
+                F=hilos_values[i].second;
+            }
+        }
 
         /*
         for(int i = 1; i<num_entradas; i++){
             int minima_area_local = 1;
             minima_area_local *= max(N->entradas[i]->intervalos[0].i2, E->intervalos[0].i2) - min(N->entradas[i]->intervalos[0].i1, E->intervalos[0].i1);
             minima_area_local *= max(N->entradas[i]->intervalos[1].i2, E->intervalos[1].i2) - min(N->entradas[i]->intervalos[1].i1, E->intervalos[1].i1);
-
             if(minima_area_local < minima_area){
                 minima_area = minima_area_local;
                 F = N->entradas[i];
